@@ -1,0 +1,11 @@
+Origins of the sound files:
+
+* https://mechvibes.com/sound-packs/
+  Fallout_Terminal
+
+* https://github.com/zevv/bucklespring/tree/master/wav
+  ff-1.wav -> mouse_down.wav
+  ff-0.wav -> mouse_up.wav
+
+* https://github.com/skkeeper/linux-clicky/tree/master/sounds
+  key03.wav -> key_up.wav
