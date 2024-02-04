@@ -5,8 +5,8 @@ Play an audio file (a click sound) when a keyboard button is pressed.
 ## Audio Samples
 
 Currently, there are two soundpacks available: **default** and **fallout**. You can check out both of them:
-- [samples/default.mp3](samples/default.mp3)
-- [samples/fallout.mp3](samples/fallout.mp3)
+- [samples/default.mp3](samples/default.mp3) (also available on YouTube: [link](https://www.youtube.com/watch?v=fSX_pSVUEUg))
+- [samples/fallout.mp3](samples/fallout.mp3) (also available on YouTube: [link](https://www.youtube.com/watch?v=8x_DNb5s65U))
 
 ## Installation and Usage
 
