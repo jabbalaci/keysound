@@ -12,6 +12,21 @@ Currently available soundpacks:
 
 ## Installation and Usage
 
+We need the external command `play`, which is
+part of the package `sox`. Install it:
+
+```bash
+# Ubuntu:
+$ sudo apt install sox
+# Arch / Manjaro:
+$ sudo pacman -S sox
+```
+
+`play` is used as a fallback solution. First we
+try to play the audio files without external calls.
+
+Then:
+
 - Download the source code
 - Create a virtual environment
 - Install the requirements (see `pyproject.toml`)
@@ -24,10 +39,10 @@ work under Windows and MacOS.
 
 ## Troubleshoot
 
-Under Ubuntu Linux, you might also need these packages:
+Under Ubuntu Linux, you will also need these packages:
 
 ```bash
-$ sudo apt install libasound2-dev libportaudio2
+$ sudo apt install libasound2-dev libportaudio2 sox
 ```
 
 ## Credits

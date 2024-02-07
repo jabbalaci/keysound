@@ -23,7 +23,7 @@ import soundfile as sf
 from pynput import mouse
 from pynput.keyboard import Key, Listener
 
-VERSION = "0.1.3"
+VERSION = "0.1.4"
 
 
 # constants
@@ -65,7 +65,8 @@ class SoundFile:
         # special cases
         if fname.startswith("mouse"):
             self.playback = C.SA
-        #
+        if cfg["sounds_dir"].endswith("banana") and fname.startswith("enter"):
+            self.playback = C.EXTERNAL
 
     def _load(self):
         if self.playback == C.SD_SF:
