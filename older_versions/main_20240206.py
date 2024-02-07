@@ -11,10 +11,8 @@ Play a sound file when you press a keyboard button.
 
 import os
 import sys
-from enum import Enum, auto
 from glob import glob
 from pathlib import Path
-from time import sleep
 from typing import Any
 
 import simpleaudio as sa
@@ -23,24 +21,13 @@ import soundfile as sf
 from pynput import mouse
 from pynput.keyboard import Key, Listener
 
-VERSION = "0.1.3"
-
-
-# constants
-class C(Enum):
-    # Priority 1: play with sounddevice+soundfile
-    SD_SF = auto()
-    # Priority 2: play with simpleaudio
-    SA = auto()
-    # Priority 3: play in an external process (use this if you have problems with the previous two)
-    # this is a fallback solution
-    EXTERNAL = auto()
+VERSION = "0.1.2"
 
 
 cfg: dict[Any, Any] = {
     "root": os.path.dirname(os.path.abspath(__file__)),  # root directory of the application
-    "soundpacks": ["default", "fallout", "banana"],  # in the sounds/ folder
-    "selected_soundpack_index": 0,  # 0: default, 1: fallout, 2: banana, etc.
+    "soundpacks": ["default", "fallout", "banana"],
+    "selected_soundpack_index": 2,  # 0: default, 1: fallout, 2: banana, etc.
     "mouse_clicks": 0,  # 0: no click, 1: click on press, 2: click on press and click on release
     "sounds_base_dir": "sounds",
     "sound_on_key_up": False,  # Do you want sound when you release a button?
@@ -50,72 +37,42 @@ cfg["sounds_dir"] = str(
 )
 
 
-class SoundFile:
-    def __init__(self, fname: str, playback=C.SD_SF) -> None:
-        """
-        Default playback method: sounddevice+soundfile
-        It plays most .wav files correctly. If there's a problem with
-        a particular .wav file, we can set a different playback method for it.
-        """
-        self.fname = fname
-        self.fname_with_path = str(Path(cfg["sounds_dir"], fname))
-        self.playback = playback
-        self.loaded = False
-        self.data = None  # will be set after loading the .wav file
-        # special cases
-        if fname.startswith("mouse"):
-            self.playback = C.SA
-        #
+def flush_input() -> None:
+    sys.stdin.flush()
 
-    def _load(self):
-        if self.playback == C.SD_SF:
-            self.data = sf.read(self.fname_with_path)
-        elif self.playback == C.SA:
-            self.data = sa.WaveObject.from_wave_file(self.fname_with_path)
-        #
-        self.loaded = True
 
-    def _play_sound(self):
-        if self.playback == C.SD_SF:
-            sd.play(*(self.data))
-        elif self.playback == C.SA:
-            self.data.play()  # type: ignore
-        elif self.playback == C.EXTERNAL:
-            cmd = f"play -q '{self.fname_with_path}' &"
-            os.system(cmd)
-        else:
-            assert False, "Error: unknown playback method"
-
-    def play(self):
-        if not self.loaded:
-            self._load()
-        #
-        self._play_sound()
+def read_sound_file(fname: str):
+    # returns a tuple with samples (ndarray) and samplerate (int)
+    return sf.read(str(Path(cfg["sounds_dir"], fname)))
 
 
 class Sound:
     def __init__(self) -> None:
         sounds_dir = cfg["sounds_dir"]
+        self.enter = read_sound_file("enter.wav")
+        self.space = read_sound_file("space.wav")
+        self.keys = [read_sound_file(Path(fname).name) for fname in glob(f"{sounds_dir}/key*.wav")]
+        self.key_up = read_sound_file("key_up.wav")
         #
-        self.enter = SoundFile("enter.wav")
-        self.space = SoundFile("space.wav")
-        self.keys = [SoundFile(Path(fname).name) for fname in glob(f"{sounds_dir}/key*.wav")]
-        self.key_up = SoundFile("key_up.wav")
-        #
-        self.mouse_down = SoundFile("mouse_down.wav")
-        self.mouse_up = SoundFile("mouse_up.wav")
+        self.mouse_down = sa.WaveObject.from_wave_file(str(Path(sounds_dir, "mouse_down.wav")))
+        self.mouse_up = sa.WaveObject.from_wave_file(str(Path(sounds_dir, "mouse_up.wav")))
         #
         self.prev_key: Key | None = None
 
+    def play(self, audio) -> None:
+        sd.play(*audio)
+        # sd.wait()  # Wait until sound has finished playing
+
     def play_sound(self, key: Key) -> None:
         if key == Key.enter:
-            sound.enter.play()
+            audio = sound.enter
         elif key == Key.space:
-            sound.space.play()
+            audio = sound.space
         else:
             index = abs(hash(key)) % len(self.keys)
             audio = self.keys[index]
-            audio.play()
+        #
+        self.play(audio)
 
 
 sound = Sound()
@@ -135,7 +92,7 @@ def on_release(key: Key) -> None:
     # print("---")
     sound.prev_key = None
     if cfg["sound_on_key_up"]:
-        sound.key_up.play()
+        sound.play(sound.key_up)
 
 
 def on_click(x, y, button, pressed) -> None:
@@ -157,10 +114,6 @@ def on_click(x, y, button, pressed) -> None:
     #
 
 
-def flush_input() -> None:
-    sys.stdin.flush()
-
-
 def main() -> None:
     folder = cfg["sounds_dir"].removeprefix(cfg["root"]).removeprefix("/")
     print(f"sound pack: {folder}")
@@ -172,7 +125,6 @@ def main() -> None:
                 mouse_listener.join()
             except KeyboardInterrupt:
                 print()
-                sleep(0.1)
         #
     #
     flush_input()
