@@ -19,8 +19,16 @@ Currently available soundpacks:
 
 ## Supported OS
 
-It was tested under **Linux** only. It may (or may not)
+It was tested under **Linux** only (Manjaro Linux). It may (or may not)
 work under Windows and MacOS.
+
+## Troubleshoot
+
+Under Ubuntu Linux, you might also need these packages:
+
+```bash
+$ sudo apt install libasound2-dev libportaudio2
+```
 
 ## Credits
 
