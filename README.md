@@ -10,7 +10,7 @@ Currently available soundpacks:
 - [samples/fallout.mp3](samples/fallout.mp3) (also available on YouTube: [link](https://www.youtube.com/watch?v=8x_DNb5s65U))
 - sounds/banana
 
-## Installation and Usage
+## Installation
 
 We need the external command `play`, which is
 part of the package `sox`. Install it:
@@ -30,7 +30,25 @@ Then:
 - Download the source code
 - Create a virtual environment
 - Install the requirements (see `pyproject.toml`)
+
+## Usage
+
+- activate the virtual environment
 - launch `main.py`
+
+Read the help:
+
+```
+$ ./main.py -h
+```
+
+You can specify the soundpack to be used after `-s`:
+
+```bash
+$ ./main.py
+$ ./main.py -s fallout
+$ ./main.py -s banana
+```
 
 ## Supported OS
 

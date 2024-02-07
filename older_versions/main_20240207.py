@@ -9,7 +9,6 @@ Play a sound file when you press a keyboard button.
 * by Laszlo Szathmary (jabba.laci@gmail.com), 2024
 """
 
-import argparse
 import os
 import sys
 from enum import Enum, auto
@@ -24,7 +23,7 @@ import soundfile as sf
 from pynput import mouse
 from pynput.keyboard import Key, Listener
 
-VERSION = "0.1.5"
+VERSION = "0.1.4"
 
 
 # constants
@@ -49,35 +48,6 @@ cfg: dict[Any, Any] = {
 cfg["sounds_dir"] = str(
     Path(cfg["root"], cfg["sounds_base_dir"], cfg["soundpacks"][cfg["selected_soundpack_index"]])
 )
-
-
-def select_soundpack(soundpack: str) -> None:
-    if soundpack not in cfg["soundpacks"]:
-        print("Invalid value. Available soundpacks:")
-        for sp in cfg["soundpacks"]:
-            print(f"* {sp}")
-        #
-        sys.exit(1)
-    # else
-    idx = cfg["soundpacks"].index(soundpack)
-    cfg["selected_soundpack_index"] = idx
-    cfg["sounds_dir"] = str(Path(cfg["root"], cfg["sounds_base_dir"], soundpack))
-
-
-def init_argparse() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Play a sound effect when a keyboard button is pressed"
-    )
-    parser.add_argument("-v", "--version", action="version", version=f"keysound {VERSION}")
-    parser.add_argument("-s", "--sound", help="which soundpack to use")
-    args = parser.parse_args()
-    return args
-
-
-args = init_argparse()
-if args.sound:
-    select_soundpack(args.sound)
-#
 
 
 class SoundFile:
