@@ -4,9 +4,11 @@ Play an audio file (a click sound) when a keyboard button is pressed.
 
 ## Audio Samples
 
-Currently, there are two soundpacks available: **default** and **fallout**. You can check out both of them:
+Soundpacks are located in the `sounds/` folder.
+Currently available soundpacks:  
 - [samples/default.mp3](samples/default.mp3) (also available on YouTube: [link](https://www.youtube.com/watch?v=fSX_pSVUEUg))
 - [samples/fallout.mp3](samples/fallout.mp3) (also available on YouTube: [link](https://www.youtube.com/watch?v=8x_DNb5s65U))
+- sounds/banana
 
 ## Installation and Usage
 
@@ -17,19 +19,19 @@ Currently, there are two soundpacks available: **default** and **fallout**. You 
 
 ## Supported OS
 
-It was tested under Linux only. Patches
-for Windows / Mac are welcome in PRs.
+It was tested under **Linux** only. It may (or may not)
+work under Windows and MacOS.
 
 ## Credits
 
 The sound files were borrowed from the following
 projects:
 
-- https://github.com/zevv/bucklespring (mouse clicks)
-- https://github.com/skkeeper/linux-clicky (key sounds)
-- https://mechvibes.com (Fallout soundpack)
+- https://github.com/zevv/bucklespring
+- https://github.com/skkeeper/linux-clicky
+- https://mechvibes.com
 
-## Related Works
+## Related Work
 
 - https://github.com/zevv/bucklespring
 - https://github.com/skkeeper/linux-clicky

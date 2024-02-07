@@ -8,8 +8,11 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.11"
 pynput = "^1.7.6"
-simpleaudio = "^1.0.4"
 xlib = "^0.21"
+sounddevice = "^0.4.6"
+soundfile = "^0.12.1"
+numpy = "^1.26.4"
+simpleaudio = "^1.0.4"
 
 
 [tool.poetry.group.dev.dependencies]

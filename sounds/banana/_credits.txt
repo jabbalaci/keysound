@@ -1,0 +1,8 @@
+Origins of the sound files:
+
+* https://mechvibes.com/sound-packs/custom-sound-pack-1203000000030/
+  Banana Split Lubed by Akira
+
+* https://github.com/zevv/bucklespring/tree/master/wav
+  ff-1.wav -> mouse_down.wav
+  ff-0.wav -> mouse_up.wav
