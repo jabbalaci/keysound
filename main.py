@@ -24,7 +24,7 @@ import soundfile as sf
 from pynput import mouse
 from pynput.keyboard import Key, Listener
 
-VERSION = "0.1.5"
+VERSION = "0.1.6"
 
 
 # constants
@@ -64,12 +64,28 @@ def select_soundpack(soundpack: str) -> None:
     cfg["sounds_dir"] = str(Path(cfg["root"], cfg["sounds_base_dir"], soundpack))
 
 
+def select_mouse_clicks(n: int) -> None:
+    if n not in (0, 1, 2):
+        print(
+            """
+Invalid value. Valid options:
+* 0 (default, no mouse clicks)
+* 1 (click when mouse button pressed)
+* 2 (click on press AND click on release)
+""".strip()
+        )
+        sys.exit(1)
+    # else
+    cfg["mouse_clicks"] = n
+
+
 def init_argparse() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Play a sound effect when a keyboard button is pressed"
     )
     parser.add_argument("-v", "--version", action="version", version=f"keysound {VERSION}")
     parser.add_argument("-s", "--sound", help="which soundpack to use")
+    parser.add_argument("-m", "--mouse", type=int, help="number of mouse clicks (0, 1 or 2)")
     args = parser.parse_args()
     return args
 
@@ -77,6 +93,8 @@ def init_argparse() -> argparse.Namespace:
 args = init_argparse()
 if args.sound:
     select_soundpack(args.sound)
+if args.mouse:
+    select_mouse_clicks(args.mouse)
 #
 
 
@@ -195,6 +213,7 @@ def flush_input() -> None:
 def main() -> None:
     folder = cfg["sounds_dir"].removeprefix(cfg["root"]).removeprefix("/")
     print(f"sound pack: {folder}")
+    print(f"number of mouse clicks: {cfg['mouse_clicks']}")
     print("start typing...")
     with Listener(on_press=on_press, on_release=on_release) as kbd_listener:
         with mouse.Listener(on_click=on_click) as mouse_listener:
