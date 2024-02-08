@@ -10,6 +10,7 @@ Currently available soundpacks:
 - [samples/fallout.mp3](samples/fallout.mp3) (also available on YouTube: [link](https://www.youtube.com/watch?v=8x_DNb5s65U))
 - sounds/banana
 - sounds/silver
+- sounds/apex
 
 ## Installation
 
