@@ -26,7 +26,9 @@ import soundfile as sf
 from pynput import mouse
 from pynput.keyboard import Key, Listener
 
-VERSION = "0.1.8"
+from keysound import demo
+
+VERSION = "0.1.9"
 
 
 # constants
@@ -57,10 +59,10 @@ def get_sounds_dir() -> str:
     return path
 
 
-def read_keysound_json() -> dict:
+def read_keysound_json() -> dict[str, str]:
     try:
         with open(Path(get_sounds_dir(), "keysound.json")) as f:
-            return json.load(f)
+            return json.load(f)  # type: ignore
         #
     except:
         print("# keysound.json not found or couldn't be read")
@@ -129,7 +131,14 @@ def init_argparse() -> argparse.Namespace:
         "--list",
         action="store_true",
         default=False,
-        help="list available soundpacks",
+        help="list available soundpacks and exit",
+    )
+    parser.add_argument(
+        "-p",
+        "--play-all",
+        action="store_true",
+        default=False,
+        help="play all sound files and exit",
     )
     parser.add_argument("-s", "--sound", help="which soundpack to use")
     parser.add_argument("-m", "--mouse", type=int, help="number of mouse clicks (0, 1 or 2)")
@@ -165,15 +174,16 @@ class SoundFile:
         a particular .wav file, we can set a different playback method for it.
         """
         sounds_dir = get_sounds_dir()
+        self.name = Path(fname).name
         self.fname_with_path = os.path.normpath(Path(sounds_dir, fname))
         self.playback = playback
         self.loaded = False
         self.data = None  # will be set after loading the .wav file
         # special cases
-        name = Path(fname).name
-        if name.startswith("mouse"):
+
+        if self.name.startswith("mouse"):
             self.playback = C.SA
-        if sounds_dir.endswith("banana") and name.startswith("enter"):
+        if sounds_dir.endswith("banana") and self.name.startswith("enter"):
             self.playback = C.EXTERNAL
 
     def exists(self) -> bool:
@@ -204,6 +214,10 @@ class SoundFile:
         #
         self._play_sound()
 
+    def __str__(self) -> str:
+        result = f"{self.name}"
+        return result
+
 
 class Sound:
     def __init__(self) -> None:
@@ -232,10 +246,13 @@ class Sound:
         #
         self.check()
 
-    def check(self):
+    def collect_keys(self) -> list[SoundFile]:
         li = [self.enter, self.space, self.key_up, self.mouse_down, self.mouse_up]
         li.extend(self.keys)
-        for key in li:
+        return li
+
+    def check(self):
+        for key in self.collect_keys():
             if not key.exists():
                 print(f"Error: {key.fname_with_path} doesn't exist")
                 print("Tip: maybe you refer to it from a keysound.json file")
@@ -301,6 +318,10 @@ def main() -> None:
     folder = get_sounds_dir().removeprefix(ROOT_DIR).removeprefix("/")
     print(f"sound pack: {folder}")
     print(f"number of mouse clicks: {cfg['mouse_clicks']}")
+    if args.play_all:
+        demo.play_all_sounds(sound)
+        return
+    # else
     print("start typing...")
     with Listener(on_press=on_press, on_release=on_release) as kbd_listener:
         with mouse.Listener(on_click=on_click) as mouse_listener:
