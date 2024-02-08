@@ -161,3 +161,4 @@ cython_debug/
 
 # own settings
 backup/
+jabba.sh

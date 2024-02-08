@@ -1,8 +1,3 @@
-Origins of the sound files:
+Origin of the sound files:
 
 * https://github.com/skkeeper/linux-clicky/tree/master/sounds
-  enter.wav, key*.wav, space.wav
-
-* https://github.com/zevv/bucklespring/tree/master/wav
-  ff-1.wav -> mouse_down.wav
-  ff-0.wav -> mouse_up.wav

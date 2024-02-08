@@ -10,7 +10,9 @@ Play a sound file when you press a keyboard button.
 """
 
 import argparse
+import json
 import os
+import random
 import sys
 from enum import Enum, auto
 from glob import glob
@@ -24,7 +26,7 @@ import soundfile as sf
 from pynput import mouse
 from pynput.keyboard import Key, Listener
 
-VERSION = "0.1.6"
+VERSION = "0.1.8"
 
 
 # constants
@@ -38,30 +40,68 @@ class C(Enum):
     EXTERNAL = auto()
 
 
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))  # root directory of the application
+
 cfg: dict[Any, Any] = {
-    "root": os.path.dirname(os.path.abspath(__file__)),  # root directory of the application
-    "soundpacks": ["default", "fallout", "banana"],  # in the sounds/ folder
-    "selected_soundpack_index": 0,  # 0: default, 1: fallout, 2: banana, etc.
+    "soundpacks": [],  # will be filled later with the folder names in sounds/
+    "selected_soundpack": "default",  # may be modified later
     "mouse_clicks": 0,  # 0: no click, 1: click on press, 2: click on press and click on release
-    "sounds_base_dir": "sounds",
+    "sounds_base_dir": str(Path(ROOT_DIR, "sounds")),
     "sound_on_key_up": False,  # Do you want sound when you release a button?
 }
-cfg["sounds_dir"] = str(
-    Path(cfg["root"], cfg["sounds_base_dir"], cfg["soundpacks"][cfg["selected_soundpack_index"]])
-)
+
+
+def get_sounds_dir() -> str:
+    path = str(Path(cfg["sounds_base_dir"], cfg["selected_soundpack"]))
+    assert os.path.isdir(path)
+    return path
+
+
+def read_keysound_json() -> dict:
+    try:
+        with open(Path(get_sounds_dir(), "keysound.json")) as f:
+            return json.load(f)
+        #
+    except:
+        print("# keysound.json not found or couldn't be read")
+        return {}
+
+
+def process_soundpacks() -> None:
+    folders = [
+        Path(entry).name
+        for entry in glob(f'{cfg["sounds_base_dir"]}/*')
+        if os.path.isdir(entry) and not Path(entry).name.startswith("_")
+    ]
+    cfg["soundpacks"] = folders
+    assert cfg["selected_soundpack"] in cfg["soundpacks"], "Non-existing soundpack is selected"
+    assert (
+        "random" not in cfg["soundpacks"]
+    ), "Don't name your soundpack 'random', this name is reserved"
+
+
+process_soundpacks()
+
+
+def list_soundpacks() -> None:
+    print("Available soundpacks:")
+    for sp in sorted(cfg["soundpacks"]):
+        print(f"* {sp}")
+    #
+    print("* random (select a soundpack randomly)")
 
 
 def select_soundpack(soundpack: str) -> None:
+    if soundpack == "random":
+        cfg["selected_soundpack"] = random.choice(cfg["soundpacks"])
+        return
+    # else
     if soundpack not in cfg["soundpacks"]:
-        print("Invalid value. Available soundpacks:")
-        for sp in cfg["soundpacks"]:
-            print(f"* {sp}")
-        #
+        print("Invalid option. ", end="")
+        list_soundpacks()
         sys.exit(1)
     # else
-    idx = cfg["soundpacks"].index(soundpack)
-    cfg["selected_soundpack_index"] = idx
-    cfg["sounds_dir"] = str(Path(cfg["root"], cfg["sounds_base_dir"], soundpack))
+    cfg["selected_soundpack"] = soundpack
 
 
 def select_mouse_clicks(n: int) -> None:
@@ -84,8 +124,22 @@ def init_argparse() -> argparse.Namespace:
         description="Play a sound effect when a keyboard button is pressed"
     )
     parser.add_argument("-v", "--version", action="version", version=f"keysound {VERSION}")
+    parser.add_argument(
+        "-l",
+        "--list",
+        action="store_true",
+        default=False,
+        help="list available soundpacks",
+    )
     parser.add_argument("-s", "--sound", help="which soundpack to use")
     parser.add_argument("-m", "--mouse", type=int, help="number of mouse clicks (0, 1 or 2)")
+    parser.add_argument(
+        "-u",
+        "--keyup",
+        action="store_true",
+        default=False,
+        help="make sound when a button is released",
+    )
     args = parser.parse_args()
     return args
 
@@ -95,6 +149,11 @@ if args.sound:
     select_soundpack(args.sound)
 if args.mouse:
     select_mouse_clicks(args.mouse)
+if args.keyup:
+    cfg["sound_on_key_up"] = True
+if args.list:
+    list_soundpacks()
+    sys.exit(0)
 #
 
 
@@ -105,16 +164,20 @@ class SoundFile:
         It plays most .wav files correctly. If there's a problem with
         a particular .wav file, we can set a different playback method for it.
         """
-        self.fname = fname
-        self.fname_with_path = str(Path(cfg["sounds_dir"], fname))
+        sounds_dir = get_sounds_dir()
+        self.fname_with_path = os.path.normpath(Path(sounds_dir, fname))
         self.playback = playback
         self.loaded = False
         self.data = None  # will be set after loading the .wav file
         # special cases
-        if fname.startswith("mouse"):
+        name = Path(fname).name
+        if name.startswith("mouse"):
             self.playback = C.SA
-        if cfg["sounds_dir"].endswith("banana") and fname.startswith("enter"):
+        if sounds_dir.endswith("banana") and name.startswith("enter"):
             self.playback = C.EXTERNAL
+
+    def exists(self) -> bool:
+        return os.path.isfile(self.fname_with_path)
 
     def _load(self):
         if self.playback == C.SD_SF:
@@ -144,7 +207,8 @@ class SoundFile:
 
 class Sound:
     def __init__(self) -> None:
-        sounds_dir = cfg["sounds_dir"]
+        sounds_dir = get_sounds_dir()
+        ks_json = read_keysound_json()
         #
         self.enter = SoundFile("enter.wav")
         self.space = SoundFile("space.wav")
@@ -155,6 +219,29 @@ class Sound:
         self.mouse_up = SoundFile("mouse_up.wav")
         #
         self.prev_key: Key | None = None
+        #
+        if "mouse_down" in ks_json:
+            value = ks_json["mouse_down"]
+            self.mouse_down = SoundFile(value)
+        if "mouse_up" in ks_json:
+            value = ks_json["mouse_up"]
+            self.mouse_up = SoundFile(value)
+        if "key_up" in ks_json:
+            value = ks_json["key_up"]
+            self.key_up = SoundFile(value)
+        #
+        self.check()
+
+    def check(self):
+        li = [self.enter, self.space, self.key_up, self.mouse_down, self.mouse_up]
+        li.extend(self.keys)
+        for key in li:
+            if not key.exists():
+                print(f"Error: {key.fname_with_path} doesn't exist")
+                print("Tip: maybe you refer to it from a keysound.json file")
+                sys.exit(1)
+            #
+        #
 
     def play_sound(self, key: Key) -> None:
         if key == Key.enter:
@@ -211,7 +298,7 @@ def flush_input() -> None:
 
 
 def main() -> None:
-    folder = cfg["sounds_dir"].removeprefix(cfg["root"]).removeprefix("/")
+    folder = get_sounds_dir().removeprefix(ROOT_DIR).removeprefix("/")
     print(f"sound pack: {folder}")
     print(f"number of mouse clicks: {cfg['mouse_clicks']}")
     print("start typing...")
@@ -222,7 +309,7 @@ def main() -> None:
                 mouse_listener.join()
             except KeyboardInterrupt:
                 print()
-                sleep(0.1)
+                sleep(0.15)
         #
     #
     flush_input()
