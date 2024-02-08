@@ -28,7 +28,7 @@ from pynput.keyboard import Key, Listener
 
 from keysound import demo
 
-VERSION = "0.1.9"
+VERSION = "0.1.10"
 
 
 # constants
