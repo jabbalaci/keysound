@@ -9,6 +9,7 @@ Currently available soundpacks:
 - [samples/default.mp3](samples/default.mp3) (also available on YouTube: [link](https://www.youtube.com/watch?v=fSX_pSVUEUg))
 - [samples/fallout.mp3](samples/fallout.mp3) (also available on YouTube: [link](https://www.youtube.com/watch?v=8x_DNb5s65U))
 - sounds/banana
+- sounds/silver
 
 ## Installation
 
@@ -40,6 +41,20 @@ Read the help:
 
 ```
 $ ./main.py -h
+usage: main.py [-h] [-v] [-l] [-p] [-s SOUND] [-m MOUSE] [-u]
+
+Play a sound effect when a keyboard button is pressed
+
+options:
+  -h, --help            show this help message and exit
+  -v, --version         show program's version number and exit
+  -l, --list            list available soundpacks and exit
+  -p, --play-all        play all sound files and exit
+  -s SOUND, --sound SOUND
+                        which soundpack to use
+  -m MOUSE, --mouse MOUSE
+                        number of mouse clicks (0, 1 or 2)
+  -u, --keyup           make sound when a button is released
 ```
 
 You can specify the soundpack to be used after `-s`:
